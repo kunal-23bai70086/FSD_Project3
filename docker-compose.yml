@@ -1,0 +1,74 @@
+version: '3.9'
+
+services:
+  # Gateway
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user-service
+      - post-service
+      - comment-service
+
+  # User Service
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "4001:4001"
+    environment:
+      - MONGO_URI=mongodb://user-mongo:27017/userdb
+    depends_on:
+      - user-mongo
+
+  user-mongo:
+    image: mongo:6
+    volumes:
+      - user-data:/data/db
+    ports:
+      - "27017:27017"
+
+  # Post Service
+  post-service:
+    build: ./services/post-service
+    ports:
+      - "4002:4002"
+    environment:
+      - MONGO_URI=mongodb://post-mongo:27017/postdb
+      - USER_SERVICE_URL=http://user-service:4001/users
+    depends_on:
+      - post-mongo
+      - user-service
+
+  post-mongo:
+    image: mongo:6
+    volumes:
+      - post-data:/data/db
+    ports:
+      - "27018:27017"
+
+  # Comment Service
+  comment-service:
+    build: ./services/comment-service
+    ports:
+      - "4003:4003"
+    environment:
+      - MONGO_URI=mongodb://comment-mongo:27017/commentdb
+      - USER_SERVICE_URL=http://user-service:4001/users
+      - POST_SERVICE_URL=http://post-service:4002/posts
+    depends_on:
+      - comment-mongo
+      - user-service
+      - post-service
+
+  comment-mongo:
+    image: mongo:6
+    volumes:
+      - comment-data:/data/db
+    ports:
+      - "27019:27017"
+
+volumes:
+  user-data:
+  post-data:
+  comment-data:
