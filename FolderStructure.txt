@@ -12,6 +12,7 @@
 │   └── settings.json
 ├── gateway/
 │   ├── Dockerfile
+│   ├── .env
 │   ├── package.json
 │   ├── package-lock.json
 │   └── src/

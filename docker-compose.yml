@@ -4,6 +4,8 @@ services:
   # Gateway
   gateway:
     build: ./gateway
+    env_file:
+      - ./gateway/.env
     ports:
       - "8080:8080"
     depends_on:
@@ -14,10 +16,10 @@ services:
   # User Service
   user-service:
     build: ./services/user-service
+    env_file:
+      - ./services/user-service/.env
     ports:
       - "4001:4001"
-    environment:
-      - MONGO_URI=mongodb://user-mongo:27017/userdb
     depends_on:
       - user-mongo
 
@@ -31,11 +33,10 @@ services:
   # Post Service
   post-service:
     build: ./services/post-service
+    env_file:
+      - ./services/post-service/.env
     ports:
       - "4002:4002"
-    environment:
-      - MONGO_URI=mongodb://post-mongo:27017/postdb
-      - USER_SERVICE_URL=http://user-service:4001/users
     depends_on:
       - post-mongo
       - user-service
@@ -50,12 +51,10 @@ services:
   # Comment Service
   comment-service:
     build: ./services/comment-service
+    env_file:
+      - ./services/comment-service/.env
     ports:
       - "4003:4003"
-    environment:
-      - MONGO_URI=mongodb://comment-mongo:27017/commentdb
-      - USER_SERVICE_URL=http://user-service:4001/users
-      - POST_SERVICE_URL=http://post-service:4002/posts
     depends_on:
       - comment-mongo
       - user-service
@@ -71,11 +70,10 @@ services:
   # Auth Service
   auth-service:
     build: ./services/auth-service
+    env_file:
+      - ./services/auth-service/.env
     ports:
       - "4004:4004"
-    environment:
-      - MONGO_URI=mongodb://auth-mongo:27017/authdb
-      - JWT_SECRET=supersecretkey
     depends_on:
       - auth-mongo
 

@@ -118,6 +118,24 @@ curl http://localhost:8080/auth/register -X POST -H 'Content-Type: application/j
 curl http://localhost:8080/posts
 ```
 
+## Env files & Docker Compose validation
+
+Each service referenced in `docker-compose.yml` uses an `env_file` entry. For example the gateway service loads `.env` (this file is present in the repo and contains `PORT=8080` plus optional URL overrides such as `USER_SERVICE_URL`).
+
+To validate the compose file and see the resolved configuration (including loaded env files) run in PowerShell:
+
+```pwsh
+docker compose config
+```
+
+Then start the stack with:
+
+```pwsh
+docker compose up --build
+```
+
+If a container exits immediately, inspect its logs with `docker compose logs <service-name>` (for example `docker compose logs user-service`) and confirm the service's `package.json` includes a `start` script and required environment variables are provided by the `.env` file.
+
 ## Notes, caveats, and observations
 
 - Services use a shared shape for users and expect `userId` references as string IDs.

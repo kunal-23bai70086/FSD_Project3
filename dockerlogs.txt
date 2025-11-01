@@ -379,3 +379,13 @@ comment-mongo-1    | {"t":{"$date":"2025-10-31T06:45:22.265+00:00"},"s":"I",  "c
 comment-mongo-1    | {"t":{"$date":"2025-10-31T06:46:11.111+00:00"},"s":"I",  "c":"WTCHKPT",  "id":22430,   "ctx":"Checkpointer","msg":"WiredTiger message","attr":{"message":{"ts_sec":1761893171,"ts_usec":111362,"thread":"1:0x72a8cfd12640","session_name":"WT_SESSION.checkpoint","category":"WT_VERB_CHECKPOINT_PROGRESS","category_id":6,"verbose_level":"DEBUG","verbose_level_id":1,"msg":"saving checkpoint snapshot min: 33, snapshot max: 33 snapshot count: 0, oldest timestamp: (0, 0) , meta checkpoint timestamp: (0, 0) base write gen: 1"}}}
 user-mongo-1       | {"t":{"$date":"2025-10-31T06:46:11.197+00:00"},"s":"I",  "c":"WTCHKPT",  "id":22430,   "ctx":"Checkpointer","msg":"WiredTiger message","attr":{"message":{"ts_sec":1761893171,"ts_usec":197466,"thread":"1:0x7e722b760640","session_name":"WT_SESSION.checkpoint","category":"WT_VERB_CHECKPOINT_PROGRESS","category_id":6,"verbose_level":"DEBUG","verbose_level_id":1,"msg":"saving checkpoint snapshot min: 33, snapshot max: 33 snapshot count: 0, oldest timestamp: (0, 0) , meta checkpoint timestamp: (0, 0) base write gen: 1"}}}
 post-mongo-1       | {"t":{"$date":"2025-10-31T06:46:11.216+00:00"},"s":"I",  "c":"WTCHKPT",  "id":22430,   "ctx":"Checkpointer","msg":"WiredTiger message","attr":{"message":{"ts_sec":1761893171,"ts_usec":216878,"thread":"1:0x781e42166640","session_name":"WT_SESSION.checkpoint","category":"WT_VERB_CHECKPOINT_PROGRESS","category_id":6,"verbose_level":"DEBUG","verbose_level_id":1,"msg":"saving checkpoint snapshot min: 33, snapshot max: 33 snapshot count: 0, oldest timestamp: (0, 0) , meta checkpoint timestamp: (0, 0) base write gen: 1"}}}
+
+Recommended validation steps (PowerShell):
+
+# Validate the resolved compose config
+docker compose config
+
+# Build and run the stack
+docker compose up --build
+
+If services fail to start, check each service's `package.json` for a `start` script and confirm the expected env vars are present in the corresponding `.env` files.
