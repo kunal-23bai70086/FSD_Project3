@@ -1,0 +1,71 @@
+.
+├── LICENSE
+├── Makefile
+├── README.md
+├── FolderStructure.txt
+├── docker-compose.yml
+├── dockerlogs.txt
+├── .gitignore
+├── package.json
+├── package-lock.json
+├── .vscode/
+│   └── settings.json
+├── gateway/
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── package-lock.json
+│   └── src/
+│       └── index.js
+├── services/
+│   ├── user-service/
+│   │   ├── Dockerfile
+│   │   ├── package.json
+│   │   ├── package-lock.json
+│   │   └── src/
+│   │       ├── index.js
+│   │       ├── middleware/
+│   │       │   └── authMiddleware.js
+│   │       ├── models/
+│   │       │   └── User.js
+│   │       └── routes/
+│   │           └── userRoutes.js
+│   ├── auth-service/
+│   │   ├── Dockerfile
+│   │   ├── package.json
+│   │   ├── package-lock.json
+│   │   └── src/
+│   │       ├── index.js
+│   │       ├── models/
+│   │       │   └── User.js
+│   │       └── routes/
+│   │           └── authRoutes.js
+│   ├── post-service/
+│   │   ├── Dockerfile
+│   │   ├── package.json
+│   │   ├── package-lock.json
+│   │   └── src/
+│   │       ├── index.js
+│   │       ├── middleware/
+│   │       │   └── authMiddleware.js
+│   │       ├── models/
+│   │       │   └── Post.js
+│   │       └── routes/
+│   │           └── postRoutes.js
+│   └── comment-service/
+│       ├── Dockerfile
+│       ├── package.json
+│       ├── package-lock.json
+│       └── src/
+│           ├── index.js
+│           ├── middleware/
+│           │   └── authMiddleware.js
+│           ├── models/
+│           │   └── Comment.js
+│           └── routes/
+│               └── commentRoutes.js
+└── scripts/
+	└── test_local_flow.mjs
+
+Notes:
+- The repo contains service folders for user/auth/post/comment, a gateway, Docker Compose to run the full stack, and a scripts folder with local test helpers.
+
