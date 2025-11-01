@@ -136,6 +136,31 @@ docker compose up --build
 
 If a container exits immediately, inspect its logs with `docker compose logs <service-name>` (for example `docker compose logs user-service`) and confirm the service's `package.json` includes a `start` script and required environment variables are provided by the `.env` file.
 
+## RBAC tests (local)
+
+This project includes a small RBAC test script that exercises role-based access control locally using an in-memory MongoDB. The script registers a regular user and an admin, obtains JWTs, and verifies that protected endpoints enforce roles (for example, only admins can list all posts).
+
+Script: `scripts/test_rbac.mjs`
+
+Prerequisites (run from repo root):
+
+```pwsh
+npm install mongodb-memory-server axios --no-audit --no-fund
+```
+
+Run the RBAC test locally:
+
+```pwsh
+node .\scripts\test_rbac.mjs
+```
+
+Expected outcome (summary):
+- Regular users are blocked from admin-only endpoints (HTTP 403).
+- Admins can access admin-only endpoints.
+- Both users and admins can create posts.
+
+If you want these checks run in CI, I can add a simple workflow that runs the RBAC script on pull requests.
+
 ## Notes, caveats, and observations
 
 - Services use a shared shape for users and expect `userId` references as string IDs.
