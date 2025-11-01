@@ -42,4 +42,46 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Get single post by id with user info
+router.get("/:id", async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    try {
+      const userRes = await axios.get(`${USER_SERVICE_URL}/${post.userId}`);
+      return res.json({ ...post._doc, user: userRes.data });
+    } catch {
+      return res.json({ ...post._doc, user: null });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update a post (title/content)
+router.put("/:id", async (req, res) => {
+  try {
+    const updates = {};
+    if (req.body.title !== undefined) updates.title = req.body.title;
+    if (req.body.content !== undefined) updates.content = req.body.content;
+
+    const post = await Post.findByIdAndUpdate(req.params.id, updates, { new: true });
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    res.json(post);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Delete a post
+router.delete("/:id", async (req, res) => {
+  try {
+    const post = await Post.findByIdAndDelete(req.params.id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;
