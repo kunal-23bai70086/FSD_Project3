@@ -68,7 +68,26 @@ services:
     ports:
       - "27019:27017"
 
+  # Auth Service
+  auth-service:
+    build: ./services/auth-service
+    ports:
+      - "4004:4004"
+    environment:
+      - MONGO_URI=mongodb://auth-mongo:27017/authdb
+      - JWT_SECRET=supersecretkey
+    depends_on:
+      - auth-mongo
+
+  auth-mongo:
+    image: mongo:6
+    volumes:
+      - auth-data:/data/db
+    ports:
+      - "27020:27017"
+
 volumes:
   user-data:
   post-data:
   comment-data:
+  auth-data:

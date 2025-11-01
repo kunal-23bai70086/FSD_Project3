@@ -1,13 +1,14 @@
 import express from "express";
 import Comment from "../models/Comment.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 import axios from "axios";
 
 const router = express.Router();
 const POST_SERVICE_URL = process.env.POST_SERVICE_URL || "http://post-service:4002/posts";
 const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://user-service:4001/users";
 
-// Create comment
-router.post("/", async (req, res) => {
+// Create comment (protected)
+router.post("/", verifyToken, async (req, res) => {
   try {
     // Validate user and post exist
     const [userRes, postRes] = await Promise.all([

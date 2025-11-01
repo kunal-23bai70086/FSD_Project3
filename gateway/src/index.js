@@ -7,6 +7,7 @@ app.use(express.json());
 app.use("/users", createProxyMiddleware({ target: "http://user-service:4001", changeOrigin: true }));
 app.use("/posts", createProxyMiddleware({ target: "http://post-service:4002", changeOrigin: true }));
 app.use("/comments", createProxyMiddleware({ target: "http://comment-service:4003", changeOrigin: true }));
+app.use("/auth", createProxyMiddleware({ target: "http://auth-service:4004", changeOrigin: true }));
 
 app.get("/", (req, res) => res.send("API Gateway running"));
 

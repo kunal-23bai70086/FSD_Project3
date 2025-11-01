@@ -22,71 +22,114 @@ Lightweight microservices demo (users, posts, comments) used for Full Stack deve
 - Comment service: implemented basic create/list endpoints. Tested through the automated runner.
 - Gateway: proxies to the services. Targets can be overridden with environment variables to test locally (useful with mocks).
 - Automated test runner: `scripts/test_all_services.mjs` — verified locally. It reported successful HTTP statuses for create/read/update/delete flows across all services.
+# FSD_Project3
 
-## How to run (quick)
+Microservices-based blogging platform (users, auth, posts, comments) built with Node.js and MongoDB. This repo contains service code, a gateway, Docker compose, and local test helpers.
+
+## Repository layout
+
+- `gateway/` — API gateway that proxies `/users`, `/posts`, `/comments`, and `/auth` to service backends.
+  - `src/index.js` — gateway entry; targets are overridable via env vars `USER_SERVICE_URL`, `POST_SERVICE_URL`, `COMMENT_SERVICE_URL`, `AUTH_SERVICE_URL`.
+- `services/`
+  - `user-service/` — Express + Mongoose user service (port 4001).
+  - `auth-service/` — Authentication service (port 4004). Exposes `/auth/register` and `/auth/login` and issues JWTs.
+  - `post-service/` — Post service (port 4002). Protected create route (requires JWT) and full CRUD.
+  - `comment-service/` — Comment service (port 4003). Protected create route (requires JWT) and listing.
+- `docker-compose.yml` — Compose file to run all services + MongoDB containers. Includes `auth-service` and `auth-mongo`.
+- `scripts/`
+  - `test_local_flow.mjs` — local flow test runner that:
+    - starts an in-memory MongoDB (mongodb-memory-server),
+    - spawns user/post/comment/auth services with MONGO_URI pointing to the in-memory DB,
+    - registers and logs in via `auth-service` to obtain a JWT, then uses the token to exercise protected post/comment creation and basic read/list flows,
+    - prints a concise results table and cleans up.
+  - `run_gateway_mocks.mjs` — small mock servers for gateway testing (optional).
+
+## Current progress / status
+
+- Services implemented: user, auth, post, comment. Post and comment create endpoints are protected via JWT (middleware present in each service).
+- Gateway updated to include `/auth` proxy to `auth-service:4004`.
+- `docker-compose.yml` updated to include `auth-service`, `auth-mongo` and `auth-data` volume.
+- `scripts/test_local_flow.mjs` added and verified locally (uses in-memory MongoDB and spawns the services).
+
+## Quick start — local flow test (recommended for development)
 
 Prerequisites:
 - Node.js (v16+ recommended)
 
-Install the lightweight runtime deps used by the test runner (from repo root):
+Install runtime deps required by the test runner (run from repo root):
 
 ```pwsh
-npm install mongodb-memory-server axios
+npm install mongodb-memory-server axios jsonwebtoken bcryptjs dotenv
 ```
 
-Run the automated CRUD tests (this will start an in-memory MongoDB and spawn the services):
+Run the local flow test (starts in-memory MongoDB and spawns services):
 
 ```pwsh
-node .\scripts\test_all_services.mjs
+node .\scripts\test_local_flow.mjs
 ```
 
-Expected: the script prints service logs, runs CRUD calls against each service, and outputs a results table showing HTTP statuses.
+What this does:
+- Registers a test user via `POST /auth/register` on the auth service.
+- Logs in and obtains a JWT via `POST /auth/login`.
+- Uses the JWT to call `POST /posts` and `POST /comments` (protected endpoints).
+- Reads back the post and lists comments; prints a summary table of results.
 
-Notes on running the gateway locally (proxy testing):
-- Install gateway deps and start mocks (if you don't want to run all services):
+Notes:
+- The script runs services by invoking their `src/index.js` directly and sets `MONGO_URI` to the in-memory DB. If you prefer per-service node_modules, run `npm install` inside each service folder.
+- The in-memory MongoDB downloads a Mongo binary the first time it runs — expect some download time the first run.
+
+## Running with Docker Compose
+
+To run the full stack with Docker (uses real MongoDB containers defined in `docker-compose.yml`):
+
+```pwsh
+docker-compose up --build
+```
+
+This will start:
+- gateway: mapped to host port 8080
+- user-service: 4001
+- post-service: 4002
+- comment-service: 4003
+- auth-service: 4004
+
+There are separate MongoDB containers and named volumes for each service (see `docker-compose.yml` for ports and volume names).
+
+## Gateway proxy (local testing)
+
+The gateway proxies the API paths to their respective services. To run the gateway locally and point it at local services or mocks, set the environment variables and start the gateway. Example (PowerShell):
 
 ```pwsh
 cd gateway
 npm install
-cd ..
-node .\scripts\run_gateway_mocks.mjs    # optional: starts simple mock user/post/comment servers on ports 4001-4003
-SET USER_SERVICE_URL=http://localhost:4001
-SET POST_SERVICE_URL=http://localhost:4002
-SET COMMENT_SERVICE_URL=http://localhost:4003
-node .\gateway\src\index.js
+# Optionally start mocks or services on localhost:4001-4004
+$env:USER_SERVICE_URL = 'http://localhost:4001'
+$env:POST_SERVICE_URL = 'http://localhost:4002'
+$env:COMMENT_SERVICE_URL = 'http://localhost:4003'
+$env:AUTH_SERVICE_URL = 'http://localhost:4004'
+node .\src\index.js
 ```
 
 Then test proxying via the gateway (default port 8080):
 
 ```pwsh
 curl http://localhost:8080/        # gateway health
-curl http://localhost:8080/users   # proxied to user-service (or mock)
+curl http://localhost:8080/auth/register -X POST -H 'Content-Type: application/json' -d '{"username":"a","email":"a@e.com","password":"p"}'
 curl http://localhost:8080/posts
-curl http://localhost:8080/comments
 ```
-
-On Windows PowerShell replace `SET` with `$env:USER_SERVICE_URL = 'http://localhost:4001'` if you prefer.
 
 ## Notes, caveats, and observations
 
-- The test runner uses `mongodb-memory-server`, which downloads a MongoDB binary on first run — expect some download time.
-- Mongoose connection warnings about `useNewUrlParser` / `useUnifiedTopology` may appear; they are harmless warnings from older connection option usage and don't affect behavior.
-- The test runner spawns service scripts directly (uses the `src/index.js` files). If you change service entrypoints or ports, update `scripts/test_all_services.mjs` accordingly.
+- Services use a shared shape for users and expect `userId` references as string IDs.
+- Mongoose may print deprecation warnings about connection options; these are non-blocking.
+- The auth middleware requires an Authorization header: `Bearer <token>`; decoded payload is attached as `req.user`.
 
 ## Suggested next steps
 
-- Add a root-level npm script `test:services` that runs `node ./scripts/test_all_services.mjs` for convenience.
-- Add assertions and structured test output (JSON or JUnit) to integrate into CI.
-- Add more thorough tests (edge cases, invalid payloads, concurrency, and error paths).
-- Optionally split the test runner into smaller steps (start, smoke tests, full tests) and add a small `Makefile` or NPM scripts.
+- Add a root-level npm script (e.g., `test:local-flow`) that runs `node ./scripts/test_local_flow.mjs` for convenience.
+- Add CI that runs the local flow script on pull requests and reports results.
+- Expand tests with negative cases (invalid token, missing fields) and structured output (JSON/JUnit).
 
 ---
 
-If you'd like, I can:
-- add the `test:services` npm script to package.json,
-- produce CI config that runs the test runner on push,
-- or add more assertions and detailed reporting to `test_all_services.mjs`.
-
-Tell me which of those you prefer next.
-# FSD_Project3
-Microservices-based blogging platform with Node.js, MongoDB, Docker, and React
+If you want, I can add the `test:local-flow` npm script to the root `package.json` and/or add CI integration next.

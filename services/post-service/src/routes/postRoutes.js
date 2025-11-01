@@ -1,12 +1,13 @@
 import express from "express";
 import Post from "../models/Post.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 import axios from "axios";
 
 const router = express.Router();
 const USER_SERVICE_URL = process.env.USER_SERVICE_URL || "http://user-service:4001/users";
 
-// Create post
-router.post("/", async (req, res) => {
+// Create post (protected)
+router.post("/", verifyToken, async (req, res) => {
   try {
     // Check if user exists
     const userRes = await axios.get(`${USER_SERVICE_URL}/${req.body.userId}`);
